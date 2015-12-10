@@ -2,6 +2,7 @@
 
 from __future__ import unicode_literals
 
+from django.core.exceptions import ImproperlyConfigured
 from django.core.urlresolvers import NoReverseMatch
 from django.utils.translation import (
     get_language_from_request,
@@ -32,7 +33,10 @@ class NewsBlogMenu(CMSAttachMenu):
         articles = self.get_queryset(request).active_translations(language)
 
         if hasattr(self, 'instance') and self.instance:
-            app = apphook_pool.get_apphook(self.instance.application_urls)
+            try:
+                app = apphook_pool.get_apphook(self.instance.application_urls)
+            except ImproperlyConfigured:
+                return nodes
             config = app.get_config(self.instance.application_namespace)
             if config:
                 articles = articles.filter(app_config=config)
